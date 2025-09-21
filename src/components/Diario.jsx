@@ -1,73 +1,48 @@
-import React, { useState, useEffect } from 'react';
 
-export default function Diario() {
-  const [note, setNote] = useState('');
-  const [list, setList] = useState([]);
+import React, { useState } from 'react';
 
-  const getToday = () => {
-    return new Date().toLocaleDateString('it-IT', {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric',
-    });
+const Diario = () => {
+  const [note, setNote] = useState([]);
+  const [testo, setTesto] = useState('');
+  const [data, setData] = useState('');
+
+  const handleAggiungi = () => {
+    if (!testo || !data) return;
+    const nuova = { testo, data };
+    setNote([...note, nuova]);
+    setTesto('');
+    setData('');
   };
 
-  useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem('diario') || '[]');
-    setList(saved);
-  }, []);
-
-  const saveNote = () => {
-    if (!note.trim()) return;
-
-    const newItem = {
-      note: note.trim(),
-      date: getToday(),
-    };
-
-    const updated = [...list, newItem];
-    setList(updated);
-    localStorage.setItem('diario', JSON.stringify(updated));
-    setNote('');
+  const raggruppaNote = () => {
+    return note.reduce((acc, n) => {
+      if (!acc[n.data]) acc[n.data] = [];
+      acc[n.data].push(n.testo);
+      return acc;
+    }, {});
   };
 
-  const grouped = list.reduce((acc, item) => {
-    acc[item.date] = acc[item.date] || [];
-    acc[item.date].push(item.note);
-    return acc;
-  }, {});
+  const notePerData = raggruppaNote();
 
   return (
-    <div className="max-w-2xl mx-auto p-4">
-      <h2 className="text-2xl font-semibold mb-4 text-indigo-700">📓 Diario di Marco</h2>
-      <div className="flex gap-2 mb-4">
-        <input
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          placeholder="Scrivi una nota..."
-          className="p-2 border rounded w-full"
-        />
-        <button
-          onClick={saveNote}
-          className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
-        >
-          Salva
-        </button>
+    <div className="p-4 max-w-xl mx-auto">
+      <h2 className="text-xl font-bold mb-4">Diario Giornaliero</h2>
+      <div className="grid grid-cols-1 gap-2 mb-4">
+        <input className="border p-2 rounded" type="date" value={data} onChange={(e) => setData(e.target.value)} />
+        <textarea className="border p-2 rounded" rows="3" placeholder="Scrivi una nota..." value={testo} onChange={(e) => setTesto(e.target.value)} />
+        <button className="bg-blue-600 text-white p-2 rounded" onClick={handleAggiungi}>Aggiungi Nota</button>
       </div>
 
-      {Object.keys(grouped).reverse().map((date) => (
-        <div key={date} className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-2">🗓️ {date}</h3>
-          <ul className="space-y-2">
-            {grouped[date].map((entry, idx) => (
-              <li key={idx} className="bg-indigo-100 border border-indigo-300 rounded p-3 text-sm">
-                {entry}
-              </li>
-            ))}
-          </ul>
+      {Object.entries(notePerData).map(([giorno, testi], idx) => (
+        <div key={idx} className="mb-6 border rounded p-4 bg-white shadow-sm">
+          <h3 className="font-bold text-lg mb-2">🗓️ {giorno}</h3>
+          {testi.map((t, i) => (
+            <p key={i} className="mb-2">• {t}</p>
+          ))}
         </div>
       ))}
     </div>
   );
-}
+};
 
+export default Diario;
