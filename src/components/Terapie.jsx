@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const Terapie = () => {
   const [terapie, setTerapie] = useState([]);
@@ -8,6 +7,17 @@ const Terapie = () => {
   const [orario, setOrario] = useState('');
   const [data, setData] = useState('');
   const [editingIndex, setEditingIndex] = useState(null);
+
+  // 🔁 Carica da localStorage all'avvio
+  useEffect(() => {
+    const salvate = localStorage.getItem('terapie');
+    if (salvate) setTerapie(JSON.parse(salvate));
+  }, []);
+
+  // 💾 Salva ogni volta che cambia
+  useEffect(() => {
+    localStorage.setItem('terapie', JSON.stringify(terapie));
+  }, [terapie]);
 
   const handleAggiungi = () => {
     if (!tipo || !giorno || !orario || !data) return;
